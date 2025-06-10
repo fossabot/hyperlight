@@ -156,3 +156,19 @@ jobs:
         run: |
           just bench-ci main ${{ matrix.config }} ${{ matrix.hypervisor == 'mshv3' && 'mshv3' || ''}}
         if: ${{ matrix.config == 'release' }}
+
+      # Always check KVM device status at the end - runs regardless of job success/failure
+      - name: Final KVM device status check
+        if: always() && runner.os == 'Linux'
+        run: |
+          echo "=== Final KVM Device Status Check ==="
+          echo "Timestamp: $(date)"
+          echo ""
+          echo "KVM device listing:"
+          sudo ls -al /dev/kvm 2>/dev/null || echo "❌ /dev/kvm device not found or not accessible"
+          echo ""
+          echo "MSHV device listing:"
+          sudo ls -al /dev/mshv 2>/dev/null || echo "❌ /dev/mshv device not found or not accessible"
+          echo ""
+          echo "All hypervisor-related devices:"
+          sudo ls -al /dev/ | grep -E "(kvm|mshv|hyperv)" 2>/dev/null || echo "No hypervisor devices found in /dev/"
